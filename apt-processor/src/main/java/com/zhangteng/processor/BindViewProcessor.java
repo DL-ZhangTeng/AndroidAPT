@@ -3,6 +3,7 @@ package com.zhangteng.processor;
 import com.google.auto.service.AutoService;
 import com.squareup.javapoet.JavaFile;
 import com.zhangteng.annotation.BindView;
+import com.zhangteng.annotation.OnClick;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -50,6 +51,7 @@ public class BindViewProcessor extends AbstractProcessor {
     public Set<String> getSupportedAnnotationTypes() {
         HashSet<String> supportTypes = new LinkedHashSet<>();
         supportTypes.add(BindView.class.getCanonicalName());
+        supportTypes.add(OnClick.class.getCanonicalName());
         return supportTypes;
     }
 
@@ -74,9 +76,9 @@ public class BindViewProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         mMessager.printMessage(Diagnostic.Kind.NOTE, "BindViewProcessor开始编译...");
         mProxyMap.clear();
-        //得到所有的注解
-        Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(BindView.class);
-        for (Element element : elements) {
+        //得到所有的BindView注解
+        Set<? extends Element> elementsBindView = roundEnv.getElementsAnnotatedWith(BindView.class);
+        for (Element element : elementsBindView) {
             VariableElement variableElement = (VariableElement) element;
             TypeElement classElement = (TypeElement) variableElement.getEnclosingElement();
             String fullClassName = classElement.getQualifiedName().toString();
@@ -87,7 +89,23 @@ public class BindViewProcessor extends AbstractProcessor {
             }
             BindView bindAnnotation = variableElement.getAnnotation(BindView.class);
             String id = bindAnnotation.value();
-            proxy.putElement(id, variableElement);
+            proxy.putElementBindView(id, variableElement);
+        }
+        //得到所有的OnClick注解
+        Set<? extends Element> elementsOnClick = roundEnv.getElementsAnnotatedWith(OnClick.class);
+        for (Element element : elementsOnClick) {
+            TypeElement classElement = (TypeElement) element.getEnclosingElement();
+            String fullClassName = classElement.getQualifiedName().toString();
+            ClassCreatorProxy proxy = mProxyMap.get(fullClassName);
+            if (proxy == null) {
+                proxy = new ClassCreatorProxy(mElements, classElement);
+                mProxyMap.put(fullClassName, proxy);
+            }
+            OnClick bindAnnotation = element.getAnnotation(OnClick.class);
+            String[] ids = bindAnnotation.value();
+            for (String id : ids) {
+                proxy.putElementOnClick(id, element);
+            }
         }
         //通过javapoet生成
         for (String key : mProxyMap.keySet()) {

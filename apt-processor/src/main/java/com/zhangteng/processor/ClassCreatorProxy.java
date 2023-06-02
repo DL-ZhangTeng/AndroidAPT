@@ -7,6 +7,7 @@ import com.squareup.javapoet.TypeSpec;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
@@ -14,10 +15,11 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.Elements;
 
 public class ClassCreatorProxy {
-    private String mBindingClassName;
-    private String mPackageName;
-    private TypeElement mTypeElement;
-    private Map<String, VariableElement> mVariableElementMap = new HashMap<>();
+    private final String mBindingClassName;
+    private final String mPackageName;
+    private final TypeElement mTypeElement;
+    private final Map<String, VariableElement> mVariableElementMapBindView = new HashMap<>();
+    private final Map<String, Element> mVariableElementMapOnClick = new HashMap<>();
 
     public ClassCreatorProxy(Elements elementUtils, TypeElement classElement) {
         this.mTypeElement = classElement;
@@ -28,8 +30,12 @@ public class ClassCreatorProxy {
         this.mBindingClassName = className + "_ViewBinding";
     }
 
-    public void putElement(String id, VariableElement element) {
-        mVariableElementMap.put(id, element);
+    public void putElementBindView(String id, VariableElement element) {
+        mVariableElementMapBindView.put(id, element);
+    }
+
+    public void putElementOnClick(String id, Element element) {
+        mVariableElementMapOnClick.put(id, element);
     }
 
     /**
@@ -38,11 +44,10 @@ public class ClassCreatorProxy {
      * @return
      */
     public TypeSpec generateJavaCode() {
-        TypeSpec bindingClass = TypeSpec.classBuilder(mBindingClassName)
+        return TypeSpec.classBuilder(mBindingClassName)
                 .addModifiers(Modifier.PUBLIC)
                 .addMethod(generateMethods())
                 .build();
-        return bindingClass;
 
     }
 
@@ -56,11 +61,28 @@ public class ClassCreatorProxy {
                 .returns(void.class)
                 .addParameter(host, "host");
 
-        for (String id : mVariableElementMap.keySet()) {
-            VariableElement element = mVariableElementMap.get(id);
-            String name = element.getSimpleName().toString();
+        for (String id : mVariableElementMapBindView.keySet()) {
+            VariableElement element = mVariableElementMapBindView.get(id);
+            if (element == null) continue;
+            String field = element.getSimpleName().toString();
             String type = element.asType().toString();
-            methodBuilder.addCode("host." + name + " = " + "(" + type + ")(((android.app.Activity)host).findViewById(R.id." + id + "));");
+            methodBuilder.addCode("        host." + field + " = " + "(" + type + ") (((android.app.Activity) host).findViewById(R.id." + id + "));");
+            methodBuilder.addCode("\n");
+        }
+        for (String id : mVariableElementMapOnClick.keySet()) {
+            VariableElement variableElement = mVariableElementMapBindView.get(id);
+            if (variableElement == null) continue;
+            Element element = mVariableElementMapOnClick.get(id);
+            if (element == null) continue;
+            String field = variableElement.getSimpleName().toString();
+            String method = element.getSimpleName().toString();
+            methodBuilder.addCode("        host." + field + ".setOnClickListener(new android.view.View.OnClickListener() {\n" +
+                    "            @Override\n" +
+                    "            public void onClick(android.view.View v) {\n" +
+                    "                host." + method + "(v);\n" +
+                    "            }\n" +
+                    "        });");
+            methodBuilder.addCode("\n");
         }
         return methodBuilder.build();
     }
