@@ -3,6 +3,7 @@ package com.zhangteng.apt;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -24,10 +25,16 @@ public class MainActivity extends AppCompatActivity {
         BindViewTool.bind(this);
         if (textView1 != null)
             textView1.setText("Hello World");
+        if (textView2 != null)
+            textView2.setText("Hello World");
     }
 
     @OnClick({"tv_hello1", "tv_hello2"})
     public void onClick(View view) {
-
+        if (view.getId() == R.id.tv_hello1) {
+            Toast.makeText(this, "tv_hello1", Toast.LENGTH_SHORT).show();
+        } else if (view.getId() == R.id.tv_hello2) {
+            Toast.makeText(this, "tv_hello2", Toast.LENGTH_SHORT).show();
+        }
     }
 }
