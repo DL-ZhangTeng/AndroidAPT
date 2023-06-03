@@ -15,8 +15,6 @@ public class MainActivity extends AppCompatActivity {
 
     @BindView(value = "tv_hello1")
     TextView textView1;
-    @BindView(value = "tv_hello2")
-    TextView textView2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,8 +23,6 @@ public class MainActivity extends AppCompatActivity {
         BindViewTool.bind(this);
         if (textView1 != null)
             textView1.setText("Hello World");
-        if (textView2 != null)
-            textView2.setText("Hello World");
     }
 
     @OnClick({"tv_hello1", "tv_hello2"})
