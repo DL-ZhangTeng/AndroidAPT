@@ -88,7 +88,7 @@ public class BindViewProcessor extends AbstractProcessor {
                 mProxyMap.put(fullClassName, proxy);
             }
             BindView bindAnnotation = variableElement.getAnnotation(BindView.class);
-            String id = bindAnnotation.value();
+            int id = bindAnnotation.value();
             proxy.putElementBindView(id, variableElement);
         }
         //得到所有的OnClick注解
@@ -102,8 +102,8 @@ public class BindViewProcessor extends AbstractProcessor {
                 mProxyMap.put(fullClassName, proxy);
             }
             OnClick bindAnnotation = element.getAnnotation(OnClick.class);
-            String[] ids = bindAnnotation.value();
-            for (String id : ids) {
+            int[] ids = bindAnnotation.value();
+            for (int id : ids) {
                 proxy.putElementOnClick(id, element);
             }
         }

@@ -1,5 +1,6 @@
 package com.zhangteng.apt;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -13,7 +14,8 @@ import com.zhangteng.library.BindViewTool;
 
 public class MainActivity extends AppCompatActivity {
 
-    @BindView(value = "tv_hello1")
+    @SuppressLint("NonConstantResourceId")
+    @BindView(value = R.id.tv_hello1)
     TextView textView1;
 
     @Override
@@ -25,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
             textView1.setText("Hello World");
     }
 
-    @OnClick({"tv_hello1", "tv_hello2"})
+    @OnClick({R.id.tv_hello1, R.id.tv_hello2})
     public void onClick(View view) {
         if (view.getId() == R.id.tv_hello1) {
             Toast.makeText(this, "tv_hello1", Toast.LENGTH_SHORT).show();

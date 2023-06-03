@@ -21,8 +21,8 @@ public class ClassCreatorProxy {
     private final String mBindingClassName;
     private final String mPackageName;
     private final TypeElement mTypeElement;
-    private final Map<String, VariableElement> mVariableElementMapBindView = new HashMap<>();
-    private final Map<String, Element> mVariableElementMapOnClick = new HashMap<>();
+    private final Map<Integer, VariableElement> mVariableElementMapBindView = new HashMap<>();
+    private final Map<Integer, Element> mVariableElementMapOnClick = new HashMap<>();
 
     public ClassCreatorProxy(Elements elementUtils, TypeElement classElement) {
         this.mTypeElement = classElement;
@@ -33,11 +33,11 @@ public class ClassCreatorProxy {
         this.mBindingClassName = className + "_ViewBinding";
     }
 
-    public void putElementBindView(String id, VariableElement element) {
+    public void putElementBindView(int id, VariableElement element) {
         mVariableElementMapBindView.put(id, element);
     }
 
-    public void putElementOnClick(String id, Element element) {
+    public void putElementOnClick(int id, Element element) {
         mVariableElementMapOnClick.put(id, element);
     }
 
@@ -73,25 +73,18 @@ public class ClassCreatorProxy {
         }
 
         //字段注入
-        for (String id : mVariableElementMapBindView.keySet()) {
+        for (Integer id : mVariableElementMapBindView.keySet()) {
             VariableElement element = mVariableElementMapBindView.get(id);
             if (element == null) continue;
             String field = element.getSimpleName().toString();
             String type = element.asType().toString();
-            methodBuilder.addCode("        host." + field + " = " + "(" + type + ") (((android.app.Activity) host).findViewById(" + packageName + "R.id." + id + "));\n");
+            methodBuilder.addCode("        host." + field + " = " + "(" + type + ") (((android.app.Activity) host).findViewById(" + id + "));\n");
         }
 
         //点击方法注入
-        for (String id : mVariableElementMapOnClick.keySet()) {
+        for (Integer id : mVariableElementMapOnClick.keySet()) {
             Element element = mVariableElementMapOnClick.get(id);
             if (element == null) continue;
-            VariableElement variableElement = mVariableElementMapBindView.get(id);
-            String field;
-            if (variableElement != null) {
-                field = variableElement.getSimpleName().toString();
-            } else {
-                field = getFileName(id);
-            }
             String method = element.getSimpleName().toString();
             List<Symbol.VarSymbol> params = new ArrayList<>();
             if (element instanceof Symbol.MethodSymbol) {
@@ -100,13 +93,7 @@ public class ClassCreatorProxy {
             }
             StringBuilder code = new StringBuilder();
 
-            //判断是否已注入字段，为注入使用findViewById设置点击事件
-            if (variableElement != null) {
-                code.append("        host.").append(field);
-            } else {
-                code.append("        ((android.app.Activity) host).findViewById(").append(packageName).append("R.id.").append(id).append(")");
-            }
-
+            code.append("        ((android.app.Activity) host).findViewById(").append(id).append(")");
             code.append(".setOnClickListener(new android.view.View.OnClickListener() {\n");
             code.append("            @Override\n");
             code.append("            public void onClick(android.view.View v) {\n");
