@@ -26,6 +26,15 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    //module jdk.compiler does not export com.sun.tools.javac.code to unnamed module @0x14091eb8
+    //将jdk改为11或加入配置'--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED',
+    tasks.withType(JavaCompile).configureEach {
+        options.fork = true
+        options.forkOptions.jvmArgs += [
+                '--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED',
+        ]
+    }
 }
 
 dependencies {
