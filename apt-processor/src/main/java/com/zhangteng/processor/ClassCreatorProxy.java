@@ -63,22 +63,17 @@ public class ClassCreatorProxy {
                 .addModifiers(Modifier.PUBLIC)
                 .returns(void.class)
                 .addParameter(host, "host");
-
-        StringBuilder packageName = new StringBuilder();
-        String[] packageNames = host.packageName().split("\\.");
-        for (int i = 0; i < packageNames.length; i++) {
-            if (i < 3) {
-                packageName.append(packageNames[i]).append(".");
-            }
-        }
-
         //字段注入
         for (Integer id : mVariableElementMapBindView.keySet()) {
             VariableElement element = mVariableElementMapBindView.get(id);
             if (element == null) continue;
             String field = element.getSimpleName().toString();
             String type = element.asType().toString();
-            methodBuilder.addCode("        host." + field + " = " + "(" + type + ") (((android.app.Activity) host).findViewById(" + id + "));\n");
+            if (!host.simpleName().toLowerCase().contains("fragment")) {
+                methodBuilder.addCode("        host." + field + " = " + "(" + type + ") (((android.app.Activity) host).findViewById(" + id + "));\n");
+            } else {
+                methodBuilder.addCode("        host." + field + " = " + "(" + type + ") (((androidx.fragment.app.Fragment) host).requireView().findViewById(" + id + "));\n");
+            }
         }
 
         //点击方法注入
@@ -93,7 +88,12 @@ public class ClassCreatorProxy {
             }
             StringBuilder code = new StringBuilder();
 
-            code.append("        ((android.app.Activity) host).findViewById(").append(id).append(")");
+            if (!host.simpleName().toLowerCase().contains("fragment")) {
+                code.append("        ((android.app.Activity) host).findViewById(").append(id).append(")");
+            } else {
+                code.append("        ((androidx.fragment.app.Fragment) host).requireView().findViewById(").append(id).append(")");
+            }
+
             code.append(".setOnClickListener(new android.view.View.OnClickListener() {\n");
             code.append("            @Override\n");
             code.append("            public void onClick(android.view.View v) {\n");
@@ -116,32 +116,5 @@ public class ClassCreatorProxy {
 
     public String getPackageName() {
         return mPackageName;
-    }
-
-    /**
-     * 获取小驼峰命名字段
-     */
-    private String getFileName(String id) {
-        StringBuilder stringBuilder = new StringBuilder();
-        String[] childNames = id.split("_");
-        for (int i = 0; i < childNames.length; i++) {
-            if (i == 0) {
-                stringBuilder.append(childNames[i].toLowerCase());
-            } else {
-                stringBuilder.append(upCaseKeyFirstChar(childNames[i]));
-            }
-        }
-        return stringBuilder.toString();
-    }
-
-    /**
-     * 首字母转大写
-     */
-    private String upCaseKeyFirstChar(String key) {
-        if (Character.isUpperCase(key.charAt(0))) {
-            return key;
-        } else {
-            return Character.toUpperCase(key.charAt(0)) + key.substring(1);
-        }
     }
 }

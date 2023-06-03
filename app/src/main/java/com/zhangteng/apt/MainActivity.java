@@ -17,14 +17,19 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("NonConstantResourceId")
     @BindView(value = R.id.tv_hello1)
     TextView textView1;
+    @SuppressLint("NonConstantResourceId")
+    @BindView(value = R.id.tv_hello2)
+    TextView textView2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         BindViewTool.bind(this);
-        if (textView1 != null)
-            textView1.setText("Hello World");
+
+        textView1.setText("Hello World");
+        textView2.setText("Hello World");
     }
 
     @OnClick({R.id.tv_hello1, R.id.tv_hello2})
