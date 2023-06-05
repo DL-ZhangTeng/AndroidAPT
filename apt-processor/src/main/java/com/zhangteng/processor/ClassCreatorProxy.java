@@ -73,7 +73,7 @@ public class ClassCreatorProxy {
             String field = element.getSimpleName().toString();
             String type = element.asType().toString();
             if (isFragment) {
-                methodBuilder.addCode("        host." + field + " = " + "(" + type + ") (((androidx.fragment.app.Fragment) host).requireView().findViewById(" + id + "));\n");
+                methodBuilder.addCode("        host." + field + " = " + "(" + type + ") (host.requireView().findViewById(" + id + "));\n");
             } else {
                 methodBuilder.addCode("        host." + field + " = " + "(" + type + ") (((android.app.Activity) host).findViewById(" + id + "));\n");
             }
@@ -92,7 +92,7 @@ public class ClassCreatorProxy {
             StringBuilder code = new StringBuilder();
 
             if (isFragment) {
-                code.append("        ((androidx.fragment.app.Fragment) host).requireView().findViewById(").append(id).append(")");
+                code.append("        host.requireView().findViewById(").append(id).append(")");
             } else {
                 code.append("        ((android.app.Activity) host).findViewById(").append(id).append(")");
             }
