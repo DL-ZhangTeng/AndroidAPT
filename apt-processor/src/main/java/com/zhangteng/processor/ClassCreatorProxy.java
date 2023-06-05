@@ -63,16 +63,19 @@ public class ClassCreatorProxy {
                 .addModifiers(Modifier.PUBLIC)
                 .returns(void.class)
                 .addParameter(host, "host");
+
+        boolean isFragment = host.simpleName().toLowerCase().endsWith("fragment");
+
         //字段注入
         for (Integer id : mVariableElementMapBindView.keySet()) {
             VariableElement element = mVariableElementMapBindView.get(id);
             if (element == null) continue;
             String field = element.getSimpleName().toString();
             String type = element.asType().toString();
-            if (!host.simpleName().toLowerCase().contains("fragment")) {
-                methodBuilder.addCode("        host." + field + " = " + "(" + type + ") (((android.app.Activity) host).findViewById(" + id + "));\n");
-            } else {
+            if (isFragment) {
                 methodBuilder.addCode("        host." + field + " = " + "(" + type + ") (((androidx.fragment.app.Fragment) host).requireView().findViewById(" + id + "));\n");
+            } else {
+                methodBuilder.addCode("        host." + field + " = " + "(" + type + ") (((android.app.Activity) host).findViewById(" + id + "));\n");
             }
         }
 
@@ -88,10 +91,10 @@ public class ClassCreatorProxy {
             }
             StringBuilder code = new StringBuilder();
 
-            if (!host.simpleName().toLowerCase().contains("fragment")) {
-                code.append("        ((android.app.Activity) host).findViewById(").append(id).append(")");
-            } else {
+            if (isFragment) {
                 code.append("        ((androidx.fragment.app.Fragment) host).requireView().findViewById(").append(id).append(")");
+            } else {
+                code.append("        ((android.app.Activity) host).findViewById(").append(id).append(")");
             }
 
             code.append(".setOnClickListener(new android.view.View.OnClickListener() {\n");
